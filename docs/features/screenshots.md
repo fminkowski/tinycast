@@ -24,6 +24,8 @@ Tinycast's own borderless selector, and Escape cancels without writing. Capture 
 Area and window selectors show a floating instruction on each display, with the Escape cancel hint.
 The selector accepts the first mouse press while Tinycast is inactive and sets its selection cursor
 as soon as it opens. Instruction pills let clicks pass through to the selection surface.
+The highlighted window retains a faint selection fill: completely transparent pixels let Window
+Server route a click to the application beneath the selector.
 
 `ScreenshotCaptureService` uses macOS 26's async `SCScreenshotManager` with SDR PNG output, no cursor,
 and window shadows. AppKit rectangles convert to global display coordinates through

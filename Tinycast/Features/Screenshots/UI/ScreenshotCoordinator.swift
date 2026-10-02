@@ -182,7 +182,8 @@ final class ScreenshotCoordinator {
         }
         let windows = mode == .window ? try await selectableWindows() : nil
         try Task.checkCancellation()
-        guard let selection = await selector.select(windows: windows) else { return nil }
+        let targets = windows?.map { ScreenshotSelectionController.WindowTarget(id: $0.windowID, frame: $0.frame) }
+        guard let selection = await selector.select(windows: targets) else { return nil }
         try Task.checkCancellation()
         switch selection {
         case .area(let rectangle):

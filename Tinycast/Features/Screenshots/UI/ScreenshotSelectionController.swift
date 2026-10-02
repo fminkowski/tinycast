@@ -1,5 +1,4 @@
 import AppKit
-import ScreenCaptureKit
 
 @MainActor
 final class ScreenshotSelectionController {
@@ -7,10 +6,14 @@ final class ScreenshotSelectionController {
         case area(CGRect)
         case window(CGWindowID)
     }
+    struct WindowTarget: Sendable {
+        let id: CGWindowID
+        let frame: CGRect
+    }
     private var panel: SelectionPanel?
     private var continuation: CheckedContinuation<Selection?, Never>?
 
-    func select(windows: [SCWindow]?) async -> Selection? {
+    func select(windows: [WindowTarget]?) async -> Selection? {
         guard panel == nil else { return nil }
         let desktop = NSScreen.screens.reduce(CGRect.null) { $0.union($1.frame) }
         guard !desktop.isNull else { return nil }
@@ -69,14 +72,14 @@ private final class SelectionPanel: NSPanel {
 
 private final class SelectionView: NSView {
     var onFinish: ((ScreenshotSelectionController.Selection?) -> Void)?
-    private let windows: [SCWindow]?
+    private let windows: [ScreenshotSelectionController.WindowTarget]?
     private var start: CGPoint?
     private var rectangle: CGRect?
-    private var selectedWindow: SCWindow?
+    private var selectedWindow: ScreenshotSelectionController.WindowTarget?
     private var tracking: NSTrackingArea?
     var selectionCursor: NSCursor { windows == nil ? .crosshair : .pointingHand }
 
-    init(frame: CGRect, windows: [SCWindow]?) {
+    init(frame: CGRect, windows: [ScreenshotSelectionController.WindowTarget]?) {
         self.windows = windows
         super.init(frame: frame)
         setAccessibilityElement(true)
@@ -148,7 +151,7 @@ private final class SelectionView: NSView {
     override func mouseDown(with event: NSEvent) {
         if windows != nil {
             mouseMoved(with: event)
-            if let selectedWindow { onFinish?(.window(selectedWindow.windowID)) }
+            if let selectedWindow { onFinish?(.window(selectedWindow.id)) }
         } else {
             start = window?.convertPoint(toScreen: event.locationInWindow)
         }
@@ -184,6 +187,10 @@ private final class SelectionView: NSView {
             let outline = NSBezierPath(rect: local.insetBy(dx: -1, dy: -1))
             outline.lineWidth = 2
             outline.stroke()
+            if windows != nil {
+                NSColor(Theme.Colors.selection).setFill()
+                NSBezierPath(rect: local).fill()
+            }
         }
         NSColor.black.withAlphaComponent(0.25).setFill()
         shade.fill()

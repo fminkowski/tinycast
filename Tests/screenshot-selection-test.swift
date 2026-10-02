@@ -39,8 +39,10 @@ struct ScreenshotSelectionTests {
             contentRect: CGRect(x: 100, y: 100, width: 300, height: 100),
             styleMask: [.borderless, .nonactivatingPanel], backing: .buffered, defer: false)
         launcher.makeKeyAndOrderFront(nil)
+        await wait { launcher.isKeyWindow }
         expect(launcher.isKeyWindow, "another surface displaced the selector's keyboard focus")
         expect(controller.focusExisting(), "reopening raises an unfinished capture instead of another surface")
+        await wait { panel.isKeyWindow }
         expect(panel.isKeyWindow, "reopening restores keyboard input to the selector")
         launcher.orderOut(nil)
         expect(await controller.select(windows: nil) == nil, "repeated selection cannot stack panels")
@@ -53,6 +55,8 @@ struct ScreenshotSelectionTests {
         } else { expect(false, "native drag returns an area") }
         expect(!panel.isVisible && panel.contentView == nil, "selector hides and releases its view before returning")
         expect(!controller.focusExisting(), "a completed capture does not intercept reopening")
+
+        await windowClick(controller)
 
         let cancelled = Task { await controller.select(windows: []) }
         await wait { NSApp.windows.contains { $0.isVisible && $0.level == .screenSaver } }
@@ -72,6 +76,36 @@ struct ScreenshotSelectionTests {
         expect(await stopped.value == nil, "disabling or switching folders resolves a pending selector")
         print("\(passes)/\(passes + failures) passed")
         if failures > 0 { exit(1) }
+    }
+
+    static func windowClick(_ controller: ScreenshotSelectionController) async {
+        guard let screen = NSScreen.primary else { expect(false, "display is available"); return }
+        let point = CGPoint(x: screen.frame.midX, y: screen.frame.midY)
+        let frame = CGRect(x: point.x - 100, y: point.y - 100, width: 200, height: 200)
+        let target = ScreenshotSelectionController.WindowTarget(
+            id: 42, frame: ScreenshotGeometry.captureRectangle(frame, primaryTop: screen.frame.maxY))
+        let selection = Task { await controller.select(windows: [target]) }
+        await wait { NSApp.windows.contains { $0.isVisible && $0.level == .screenSaver } }
+        guard let panel = NSApp.windows.first(where: { $0.isVisible && $0.level == .screenSaver }) else {
+            controller.cancel()
+            _ = await selection.value
+            return
+        }
+        let local = panel.convertPoint(fromScreen: point)
+        send(.mouseMoved, at: local, to: panel)
+        for appearance in [NSAppearance.Name.aqua, .darkAqua] {
+            panel.appearance = NSAppearance(named: appearance)
+            panel.contentView?.needsDisplay = true
+            panel.displayIfNeeded()
+            await wait { NSWindow.windowNumber(at: point, belowWindowWithWindowNumber: 0) == panel.windowNumber }
+            let hit = NSWindow.windowNumber(at: point, belowWindowWithWindowNumber: 0)
+            expect(hit == panel.windowNumber,
+                   "highlight accepts clicks in \(appearance.rawValue) (hit \(hit), selector \(panel.windowNumber))")
+        }
+        send(.leftMouseDown, at: local, to: panel)
+        if case .window(let id) = await selection.value {
+            expect(id == target.id, "clicking the highlight selects its window ID")
+        } else { expect(false, "window click completes selection") }
     }
 
     static func hasVisiblePrompt(_ panel: NSWindow) -> Bool {
@@ -101,7 +135,7 @@ struct ScreenshotSelectionTests {
             if condition() { return }
             try? await Task.sleep(for: .milliseconds(10))
         }
-        expect(false, "selector became visible within one second")
+        expect(false, "native window state settled within one second")
     }
 
     static func expect(_ condition: Bool, _ message: String) {
