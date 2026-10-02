@@ -91,7 +91,7 @@ final class ScreenshotCoordinator {
     }
 
     func capture(_ mode: CaptureMode) {
-        guard settings.screenshotsEnabled, captureTask == nil else { return }
+        guard settings.screenshotsEnabled, !focusCapture() else { return }
         let screen = NSScreen.underCursor
         let folder = folder
         core.paletteCoordinator.hidePalette()
@@ -127,6 +127,13 @@ final class ScreenshotCoordinator {
                 self.core.showMessage("Couldn't capture screenshot: \(error.localizedDescription)", tone: .danger)
             }
         }
+    }
+
+    func focusCapture() -> Bool {
+        guard captureTask != nil else { return false }
+        if core.paletteCoordinator.isVisible { core.paletteCoordinator.hidePalette(restoreFocus: false) }
+        _ = selector.focusExisting()
+        return true
     }
 
     func copy(_ item: ScreenshotItem) {

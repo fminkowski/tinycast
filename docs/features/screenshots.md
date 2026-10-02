@@ -26,6 +26,9 @@ and window shadows. AppKit rectangles convert to global display coordinates thro
 `ScreenshotGeometry`; area captures use the highest intersecting display scale. Selectors and the
 palette order out before capture.
 
+Reopening Tinycast or repeating a capture command raises the existing selector instead of opening
+another surface. The active capture retains keyboard focus so Escape can cancel it.
+
 The captured PNG goes to the clipboard before saving. A save failure therefore reports the partial
 success rather than losing the image. `ScreenshotRepository` writes a hidden staging file, then moves
 it to a unique timestamp-and-UUID filename without replacing an existing file. It creates a missing

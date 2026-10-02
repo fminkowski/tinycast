@@ -92,7 +92,7 @@ If a change touches anything in the right column, the harness on the left is man
 | `calc-test` | all of `Calculator/Model/` |
 | `calendar-test` | all of `Calendar/Model/` — link detection, the join window, the day buckets |
 | `clipboard-search-test` | Ordinary and OCR result ordering, opt-in lifecycle, cancellation, pins and type filters |
-| `screenshot-selection-test` | native selection overlays — drag geometry, Escape, repeated triggers and teardown, without capturing or writing the clipboard |
+| `screenshot-selection-test` | native selection overlays — drag geometry, focus restoration, Escape, repeated triggers and teardown, without capturing or writing the clipboard |
 | `screenshots-test` | Screenshot filenames, folder scanning, geometry, SQLite OCR invalidation, retries, cancellation and generation isolation |
 | `clipboard-text-test` | Apple Vision/PDF extraction, scheduling, retry backoff and recovery |
 | `paste-sequence-test` | `Clipboard/Model/PasteSequence.swift` — the walk's order, its end, and what starts it over |

@@ -437,6 +437,7 @@ final class AppCore {
 
     /// Clicking the Dock icon: raise whichever window is already open, else summon the launcher.
     func handleReopen() {
+        if screenshotCoordinator.focusCapture() { return }
         if settingsCoordinator.focusExisting() { return }
         if aiChatCoordinator.focusExisting() { return }
         if onboardingCoordinator.focusExisting() { return }

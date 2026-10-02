@@ -20,6 +20,14 @@ struct ScreenshotSelectionTests {
         expect(panel.styleMask.contains(.nonactivatingPanel), "selector receives input without activating Tinycast")
         expect(panel.level == .screenSaver && !panel.isOpaque && !panel.hasShadow,
                "selector owns a transparent panel above application windows")
+        let launcher = LauncherPanel(
+            contentRect: CGRect(x: 100, y: 100, width: 300, height: 100),
+            styleMask: [.borderless, .nonactivatingPanel], backing: .buffered, defer: false)
+        launcher.makeKeyAndOrderFront(nil)
+        expect(launcher.isKeyWindow, "another surface displaced the selector's keyboard focus")
+        expect(controller.focusExisting(), "reopening raises an unfinished capture instead of another surface")
+        expect(panel.isKeyWindow, "reopening restores keyboard input to the selector")
+        launcher.orderOut(nil)
         expect(await controller.select(windows: nil) == nil, "repeated selection cannot stack panels")
         send(.leftMouseDown, at: CGPoint(x: 100, y: 100), to: panel)
         send(.leftMouseDragged, at: CGPoint(x: 30, y: 40), to: panel)
@@ -29,6 +37,7 @@ struct ScreenshotSelectionTests {
             expect(rectangle.size == CGSize(width: 70, height: 60), "native drag normalizes its selection")
         } else { expect(false, "native drag returns an area") }
         expect(!panel.isVisible && panel.contentView == nil, "selector hides and releases its view before returning")
+        expect(!controller.focusExisting(), "a completed capture does not intercept reopening")
 
         let cancelled = Task { await controller.select(windows: []) }
         await wait { NSApp.windows.contains { $0.isVisible && $0.level == .screenSaver } }
@@ -75,5 +84,9 @@ struct ScreenshotSelectionTests {
             failures += 1
             print("FAIL: \(message)")
         }
+    }
+
+    private final class LauncherPanel: NSPanel {
+        override var canBecomeKey: Bool { true }
     }
 }

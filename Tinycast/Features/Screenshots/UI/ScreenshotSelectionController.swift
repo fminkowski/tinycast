@@ -40,6 +40,14 @@ final class ScreenshotSelectionController {
 
     func cancel() { finish(nil) }
 
+    func focusExisting() -> Bool {
+        guard let panel else { return false }
+        panel.makeKeyAndOrderFront(nil)
+        panel.orderFrontRegardless()
+        panel.makeFirstResponder(panel.contentView)
+        return true
+    }
+
     private func finish(_ selection: Selection?) {
         panel?.orderOut(nil)
         panel?.contentView = nil
