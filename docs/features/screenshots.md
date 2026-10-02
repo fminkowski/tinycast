@@ -21,6 +21,10 @@ its pointer, ordered by Core Graphics window metadata and resolved to `SCWindow`
 Tinycast's own borderless selector, and Escape cancels without writing. Capture Screen takes the
 `NSScreen.underCursor` snapshot recorded before the palette hides.
 
+Area and window selectors show a floating instruction on each display, with the Escape cancel hint.
+The selector accepts the first mouse press while Tinycast is inactive and sets its selection cursor
+as soon as it opens. Instruction pills let clicks pass through to the selection surface.
+
 `ScreenshotCaptureService` uses macOS 26's async `SCScreenshotManager` with SDR PNG output, no cursor,
 and window shadows. AppKit rectangles convert to global display coordinates through
 `ScreenshotGeometry`; area captures use the highest intersecting display scale. Selectors and the

@@ -20,6 +20,21 @@ struct ScreenshotSelectionTests {
         expect(panel.styleMask.contains(.nonactivatingPanel), "selector receives input without activating Tinycast")
         expect(panel.level == .screenSaver && !panel.isOpaque && !panel.hasShadow,
                "selector owns a transparent panel above application windows")
+        expect(hasVisiblePrompt(panel), "area selection draws visible guidance before dragging")
+        expect(panel.contentView?.acceptsFirstMouse(for: nil) == true,
+               "the inactive selector accepts the first drag or click")
+        expect(panel.contentView?.subviews.count == NSScreen.screens.count,
+               "each display gets visible selection guidance")
+        for appearance in [NSAppearance.Name.aqua, .darkAqua] {
+            panel.appearance = NSAppearance(named: appearance)
+            expect(hasVisiblePrompt(panel), "selection guidance remains visible in \(appearance.rawValue)")
+        }
+        panel.appearance = nil
+        if let prompt = panel.contentView?.subviews.first {
+            let point = CGPoint(x: prompt.frame.midX, y: prompt.frame.midY)
+            expect(panel.contentView?.hitTest(point) === panel.contentView,
+                   "instruction pills do not swallow selection clicks")
+        } else { expect(false, "instruction pill is present") }
         let launcher = LauncherPanel(
             contentRect: CGRect(x: 100, y: 100, width: 300, height: 100),
             styleMask: [.borderless, .nonactivatingPanel], backing: .buffered, defer: false)
@@ -45,7 +60,8 @@ struct ScreenshotSelectionTests {
             let escape = NSEvent.keyEvent(
                 with: .keyDown, location: .zero, modifierFlags: [], timestamp: 0, windowNumber: panel.windowNumber,
                 context: nil, characters: "\u{1b}", charactersIgnoringModifiers: "\u{1b}", isARepeat: false, keyCode: 53) {
-            panel.contentView?.keyDown(with: escape)
+            expect(hasVisiblePrompt(panel), "window selection draws visible guidance before hovering")
+            panel.sendEvent(escape)
         } else { controller.cancel() }
         expect(await cancelled.value == nil, "Escape cancels a window selection")
         expect(!NSApp.windows.contains { $0.isVisible && $0.level == .screenSaver }, "cancel leaves no selector visible")
@@ -58,17 +74,26 @@ struct ScreenshotSelectionTests {
         if failures > 0 { exit(1) }
     }
 
+    static func hasVisiblePrompt(_ panel: NSWindow) -> Bool {
+        guard let view = panel.contentView,
+            let bitmap = view.bitmapImageRepForCachingDisplay(in: view.bounds) else { return false }
+        view.cacheDisplay(in: view.bounds, to: bitmap)
+        guard let background = bitmap.colorAt(x: 0, y: 0)?.usingColorSpace(.deviceRGB) else { return false }
+        for y in stride(from: 0, to: bitmap.pixelsHigh, by: 4) {
+            for x in stride(from: 0, to: bitmap.pixelsWide, by: 4) {
+                guard let color = bitmap.colorAt(x: x, y: y)?.usingColorSpace(.deviceRGB) else { continue }
+                if abs(color.redComponent - background.redComponent) > 0.2 { return true }
+            }
+        }
+        return false
+    }
+
     static func send(_ type: NSEvent.EventType, at point: CGPoint, to panel: NSWindow) {
         guard let event = NSEvent.mouseEvent(
             with: type, location: point, modifierFlags: [], timestamp: 0, windowNumber: panel.windowNumber,
-            context: nil, eventNumber: 0, clickCount: 1, pressure: 1), let view = panel.contentView
+            context: nil, eventNumber: 0, clickCount: 1, pressure: 1)
         else { expect(false, "mouse event created"); return }
-        switch type {
-        case .leftMouseDown: view.mouseDown(with: event)
-        case .leftMouseDragged: view.mouseDragged(with: event)
-        case .leftMouseUp: view.mouseUp(with: event)
-        default: break
-        }
+        panel.sendEvent(event)
     }
 
     static func wait(_ condition: () -> Bool) async {

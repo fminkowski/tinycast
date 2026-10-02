@@ -30,11 +30,13 @@ final class ScreenshotSelectionController {
             let view = SelectionView(frame: CGRect(origin: .zero, size: desktop.size), windows: windows)
             view.onFinish = { [weak self] selection in self?.finish(selection) }
             panel.contentView = view
+            view.installPrompts()
             view.highlightWindow(at: NSEvent.mouseLocation)
             self.panel = panel
             panel.makeKeyAndOrderFront(nil)
             panel.orderFrontRegardless()
             panel.makeFirstResponder(view)
+            view.selectionCursor.set()
         }
     }
 
@@ -45,6 +47,7 @@ final class ScreenshotSelectionController {
         panel.makeKeyAndOrderFront(nil)
         panel.orderFrontRegardless()
         panel.makeFirstResponder(panel.contentView)
+        (panel.contentView as? SelectionView)?.selectionCursor.set()
         return true
     }
 
@@ -71,6 +74,7 @@ private final class SelectionView: NSView {
     private var rectangle: CGRect?
     private var selectedWindow: SCWindow?
     private var tracking: NSTrackingArea?
+    var selectionCursor: NSCursor { windows == nil ? .crosshair : .pointingHand }
 
     init(frame: CGRect, windows: [SCWindow]?) {
         self.windows = windows
@@ -82,19 +86,46 @@ private final class SelectionView: NSView {
 
     required init?(coder: NSCoder) { nil }
     override var acceptsFirstResponder: Bool { true }
+    override func acceptsFirstMouse(for event: NSEvent?) -> Bool { true }
+
+    func installPrompts() {
+        guard let window else { return }
+        let instruction = windows == nil ? "Drag to select an area" : "Click a highlighted window"
+        for screen in NSScreen.screens {
+            let label = NSTextField(labelWithString: "\(instruction)  ·  Esc to cancel")
+            label.font = Theme.Typography.chipNSFont
+            label.textColor = NSColor(Theme.Colors.textPrimary)
+            label.sizeToFit()
+            let inset = Theme.Spacing.dialogInset
+            let size = CGSize(width: label.frame.width + inset * 2, height: label.frame.height + inset * 2)
+            let visible = window.convertFromScreen(screen.visibleFrame)
+            let prompt = SelectionPrompt(frame: CGRect(
+                x: visible.midX - size.width / 2, y: visible.minY + Theme.Size.hudEdgeOffset,
+                width: size.width, height: size.height))
+            prompt.cornerRadius = size.height / 2
+            let content = NSView(frame: CGRect(origin: .zero, size: size))
+            label.setFrameOrigin(CGPoint(x: inset, y: inset))
+            content.addSubview(label)
+            prompt.contentView = content
+            addSubview(prompt)
+        }
+    }
 
     override func resetCursorRects() {
-        addCursorRect(bounds, cursor: windows == nil ? .crosshair : .pointingHand)
+        addCursorRect(bounds, cursor: selectionCursor)
     }
 
     override func updateTrackingAreas() {
         super.updateTrackingAreas()
         if let tracking { removeTrackingArea(tracking) }
-        let tracking = NSTrackingArea(rect: bounds, options: [.mouseMoved, .activeAlways, .inVisibleRect], owner: self)
+        let tracking = NSTrackingArea(
+            rect: bounds, options: [.mouseMoved, .cursorUpdate, .activeAlways, .inVisibleRect], owner: self)
         addTrackingArea(tracking)
         self.tracking = tracking
         window?.acceptsMouseMovedEvents = true
     }
+
+    override func cursorUpdate(with event: NSEvent) { selectionCursor.set() }
 
     override func mouseMoved(with event: NSEvent) {
         highlightWindow(at: window?.convertPoint(toScreen: event.locationInWindow) ?? .zero)
@@ -157,4 +188,8 @@ private final class SelectionView: NSView {
         NSColor.black.withAlphaComponent(0.25).setFill()
         shade.fill()
     }
+}
+
+private final class SelectionPrompt: NSGlassEffectView {
+    override func hitTest(_ point: NSPoint) -> NSView? { nil }
 }

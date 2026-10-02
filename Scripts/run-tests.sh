@@ -145,7 +145,8 @@ run index calc-performance Tinycast/Features/Calculator/Model/*.swift
 run calendar-test          Tinycast/Features/Calendar/Model/*.swift
 run screenshot-selection-test Tinycast/Features/Screenshots/UI/ScreenshotSelectionController.swift \
                            Tinycast/Features/Screenshots/Model/ScreenshotGeometry.swift \
-                           Tinycast/Platform/ScreenTarget.swift
+                           Tinycast/Platform/ScreenTarget.swift \
+                           Tinycast/Platform/Appearance.swift Tinycast/DesignSystem/Theme.swift
 run screenshots-test       Tinycast/Features/Screenshots/Model/*.swift \
                            Tinycast/Features/Screenshots/Service/ScreenshotRepository.swift \
                            Tinycast/Features/Screenshots/Service/ScreenshotTextCache.swift \
