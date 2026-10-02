@@ -51,7 +51,7 @@ Independently of the folder tree, every mature subsystem has converged on the sa
 └──────────────────────────────────┬─────────────────────────────────────────┘
                                    │ published through
 ┌─ OBSERVABLE STATE ───────────────▼─────────────────────────────────────────┐
-│ 39 @MainActor @Observable stores, sessions, indices and State types        │
+│ @MainActor @Observable stores, sessions, indices and State types           │
 └──────────────────────────────────┬─────────────────────────────────────────┘
                                    │ rendered by
 ┌─ VIEW ───────────────────────────▼─────────────────────────────────────────┐
@@ -111,11 +111,16 @@ fine too; deciding something with one is what the rule forbids. `showNotice`, `c
 
 New long-lived state belongs on `AppCore`, wired in `start()`. Do not create a competing singleton: this is a singleton, not a container.
 
-Clipboard text recognition is the one feature that leaves the process. `AppCore` owns the indexer;
-the stateless `ClipboardTextWorker` runs one bundled `ClipboardTextHelper` per item, from
+Clipboard and screenshot text recognition leave the process. `AppCore` owns the indexer;
+the stateless `TextRecognitionWorker` runs one bundled `TextRecognitionHelper` per item, from
 `Contents/Helpers`, and reaps it before returning. Vision's and PDFKit's allocations therefore belong
 to a process that exits, and the helper — which has no database, clipboard or settings access — is
 handed an input path and answers with bounded text down a pipe.
+
+Screenshots adds `ScreenshotStore` and `ScreenshotCoordinator` under the same core ownership.
+Its current-folder library and SQLite OCR cache are independent of Clipboard History; the shared
+URL-based recognition worker and helper live in `Platform/TextRecognition`. Both hosting trees inject
+the screenshot coordinator. Capture selectors belong entirely to `Features/Screenshots`.
 
 ## Entry points and windows
 
@@ -171,8 +176,8 @@ macOS by itself. Nothing else in the app sets an appearance.
 
 ## Observation
 
-39 types are `@MainActor @Observable`. Nothing uses `ObservableObject` or `@Published`, and views read
-state through `@Environment` rather than `@EnvironmentObject`.
+Stores, sessions and coordinators are `@MainActor @Observable`. Nothing uses `ObservableObject` or
+`@Published`, and views read state through `@Environment` rather than `@EnvironmentObject`.
 
 Three things about this model are easy to get wrong:
 

@@ -16,6 +16,7 @@ extension View {
             .modifier(InterfaceMetricsScope(settings: core.settings))
             .environment(core)
             .environment(core.settings)
+            .environment(core.screenshotCoordinator)
             .environment(core.palette)
             .environment(core.appIndex)
             .environment(core.clipboardStore)

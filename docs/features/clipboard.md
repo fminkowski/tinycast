@@ -47,8 +47,8 @@
   it extracts fresh in the helper and puts the text on the pasteboard — the `item_text` table
   itself is still never copied from. What an entry *is* still comes from the content that was
   captured.
-- **No recognition ever runs in the app process.** `ClipboardTextWorker` spawns one bundled
-  `ClipboardTextHelper` per item and reaps it, which is the whole reason Vision's and PDFKit's
+- **No recognition ever runs in the app process.** `TextRecognitionWorker` spawns one bundled
+  `TextRecognitionHelper` per item and reaps it, which is the whole reason Vision's and PDFKit's
   allocations do not accumulate in Tinycast. The helper is handed a path and answers with text.
 
 ## Poll-based capture
@@ -157,9 +157,9 @@ wakes that wait — and an empty queue exits rather than polling.
 Turning either switch off cancels the run in flight; the indexer is kept and reschedules itself once
 that run winds down, which is why `applyClipboardTextSearch` can be called again at any time.
 
-Recognition runs in a bundled `ClipboardTextHelper`, one item at a time, and Vision's and PDFKit's
+Recognition runs in a bundled `TextRecognitionHelper`, one item at a time, and Vision's and PDFKit's
 state leaves with it. The parent accepts at most 32 KB from the helper's output pipe, propagates
-cancellation, and terminates and reaps a helper that runs past 60 seconds. `ClipboardTextWorker`
+cancellation, and terminates and reaps a helper that runs past 60 seconds. `TextRecognitionWorker`
 does its blocking read and wait on its own `DispatchQueue`, never the cooperative pool. No helper
 exists while text search is off or the queue is empty — a Copy Text trigger is the exception: the
 helper is bundled either way, so an explicit extraction spawns one with the search switch off.
@@ -213,7 +213,7 @@ in Finder) — and it is never a PDF, which stays a background-indexing capabili
 The action closes the palette and shows a "Reading text…" progress pill, then stats the file off
 the main actor, since a stat on an unmounted volume can stall: a vanished referenced file raises the
 HUD every action on that row uses, and a pruned blob says "That image is no longer available." —
-the palette is already down, so a HUD is the only thing that can speak. `ClipboardTextWorker` then
+the palette is already down, so a HUD is the only thing that can speak. `TextRecognitionWorker` then
 spawns the bundled helper: no Vision runs in the app process, nothing reads the `item_text` table,
 and nothing depends on the text-search switch, whose helper is bundled either way. The extracted
 text is written with `Paster.copyPlainText`, **unmarked**, so the copy enters history like Copy

@@ -10,7 +10,7 @@ struct PasteboardTests {
     static var passes = 0
     static let cap = ClipboardManager.maxCapturedFiles
 
-    static func main() {
+    static func main() async {
         finderCopyReadsAsAFileNotItsName()
         everyFileFlavourIsRead()
         multipleFilesReadNewestLast()
@@ -22,6 +22,7 @@ struct PasteboardTests {
         aModernFileURLSuppressesTheLegacyFallback()
         fileEntriesWriteBackAsFiles()
         aVanishedFileWritesNothing()
+        await screenshotCopiesRespectHistory()
 
         print("\(passes)/\(passes + failures) passed")
         if failures > 0 { exit(1) }
@@ -304,6 +305,30 @@ struct PasteboardTests {
             expect(!Paster.write(store.items[0], store: store, to: pb), "a vanished file refuses")
             expect(pb.string(forType: .string) == "untouched", "and leaves the pasteboard alone")
         }
+    }
+
+    static func screenshotCopiesRespectHistory() async {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent("tinycast-shots-board-\(UUID())")
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let store = ClipboardStore(directory: directory)
+        let manager = ClipboardManager(store: store, settings: AppSettings())
+        let png = Data([137, 80, 78, 71])
+        let pasteboard = board()
+        manager.copyImage(png, to: pasteboard)
+        expect(pasteboard.data(forType: .png) == png, "screenshot writes image bytes, not a file URL")
+        expect(pasteboard.types?.contains(ClipboardManager.internalType) == true, "screenshot carries the internal marker")
+        expect(store.items.isEmpty, "screenshot copy works with history off without recording")
+        manager.start()
+        manager.copyImage(png, to: pasteboard)
+        for _ in 0..<100 where store.items.isEmpty { try? await Task.sleep(for: .milliseconds(10)) }
+        manager.stop()
+        expect(store.items.count == 1 && store.items[0].kind == .image, "screenshot enters enabled history exactly once")
+        manager.copyImage(png, to: pasteboard)
+        try? await Task.sleep(for: .milliseconds(20))
+        expect(store.items.count == 1, "stopping history prevents further screenshot recording")
+        let previous = pasteboard.changeCount
+        manager.copyImage(Data(), to: pasteboard)
+        expect(pasteboard.changeCount == previous, "empty screenshot leaves the pasteboard untouched")
     }
 
     // MARK: - Harness

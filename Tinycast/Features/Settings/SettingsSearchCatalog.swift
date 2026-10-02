@@ -109,7 +109,7 @@ enum SettingsSearchCatalog {
 
     static let entries: [SettingsSearchEntry] =
         general + applications + systemSettings + systemActions + commands + quicklinks
-        + appleShortcuts + fallbacks + clipboard + snippets + fileSearch + windowManagement
+        + appleShortcuts + fallbacks + clipboard + screenshots + snippets + fileSearch + windowManagement
         + navigation + notes + calendar + emoji + ai + quickActions + extensions + permissions
         + backup + about
 
@@ -458,6 +458,13 @@ enum SettingsSearchCatalog {
             keywords: ["add", "create", "resize", "window size"])
     ]
 
+    private static let screenshots: [SettingsSearchEntry] = [
+        .init(pane: .screenshots, keywords: ["capture", "screen", "image", "OCR", "preview"]),
+        .init(.screenshotsScreenshots, "Enable Screenshots", keywords: ["disable", "recognition", "OCR"]),
+        .init(.screenshotsFolder, "Save Location", keywords: ["folder", "directory", "Pictures", "PNG"]),
+        .init(group: .screenshotsCommands, "Screenshot commands", keywords: ["hotkey", "alias", "capture"])
+    ]
+
     private static let clipboard: [SettingsSearchEntry] = [
         .init(
             pane: .clipboard,
@@ -592,7 +599,8 @@ enum SettingsSearchCatalog {
             keywords: ["paste", "keystrokes", "privacy", "grant"]),
         .init(
             .permissionsCalendars, "Calendars",
-            keywords: ["events", "privacy", "grant", "eventkit"])
+            keywords: ["events", "privacy", "grant", "eventkit"]),
+        .init(.permissionsScreenRecording, "Screen Recording", keywords: ["screenshot", "capture", "access", "privacy"])
     ]
 
     private static let backup: [SettingsSearchEntry] = [

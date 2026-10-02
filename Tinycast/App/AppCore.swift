@@ -193,6 +193,13 @@ final class AppCore {
     @ObservationIgnored private(set) lazy var windowSwitchCoordinator = WindowSwitchCoordinator(
         settings: settings, appIndex: appIndex, session: windowSwitch, palette: palette,
         paletteCoordinator: paletteCoordinator, core: self)
+    @ObservationIgnored private(set) lazy var screenshots = ScreenshotStore(
+        folder: ScreenshotRepository.folder(
+            chosen: settings.screenshotsFolder, home: FileManager.default.homeDirectoryForCurrentUser,
+            bundleID: Bundle.main.bundleIdentifier ?? "com.tinycast.app"),
+        cacheURL: AppPaths.caches().appending(path: "screenshots.sqlite3"))
+    @ObservationIgnored private(set) lazy var screenshotCoordinator = ScreenshotCoordinator(
+        store: screenshots, settings: settings, core: self)
     @ObservationIgnored private(set) lazy var cameraCoordinator = CameraCoordinator(core: self)
     @ObservationIgnored private(set) lazy var dictionaryCoordinator = DictionaryCoordinator(
         paletteCoordinator: paletteCoordinator)
@@ -271,6 +278,7 @@ final class AppCore {
             extensions.start(appIndex: appIndex, coordinator: extensionCoordinator)
             extensionCoordinator.applyEnabled()
             fileSearchCoordinator.applyEnabled()
+            screenshotCoordinator.applyEnabled()
             windowSwitchCoordinator.applyEnabled()
             menuSearchCoordinator.applyEnabled()
             fileSearchCoordinator.applyPolicy()
@@ -314,6 +322,7 @@ final class AppCore {
             }
             paletteCoordinator.onScreenOpening = { [weak self] mode in
                 switch mode {
+                case .screenshots: self?.screenshotCoordinator.load()
                 case .menuSearch: self?.menuSearchCoordinator.load()
                 case .switchWindows: self?.windowSwitchCoordinator.load()
                 case .rooms, .roomWindows: self?.roomCoordinator.load()
@@ -518,6 +527,7 @@ final class AppCore {
     }
 
     func prepareForTermination() {
+        screenshotCoordinator.stop()
         settingsFile?.flush()
         clipboardTextIndexer?.stop()
         // Caps Lock first: its remap is the one teardown that outlives the process.
@@ -632,6 +642,8 @@ final class AppCore {
                 $0.windowSwitchCoordinator.applyEnabled()
                 $0.menuSearchCoordinator.applyEnabled()
             })
+        track({ _ = $0.screenshotsEnabled }, reproject: { $0.screenshotCoordinator.applyEnabled() })
+        track({ _ = $0.screenshotsFolder }, reproject: { $0.screenshotCoordinator.applyFolder() })
         track({ _ = $0.notesEnabled }, reproject: { $0.notesCoordinator.applyEnabled() })
         track({ _ = $0.aiEnabled }, reproject: { $0.aiChatCoordinator.applyEnabled() })
         track(

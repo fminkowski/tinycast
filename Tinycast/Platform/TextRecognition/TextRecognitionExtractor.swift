@@ -3,7 +3,7 @@ import ImageIO
 import PDFKit
 import Vision
 
-nonisolated enum ClipboardTextExtractor {
+nonisolated enum TextRecognitionExtractor {
     static let maximumTextBytes = 32_000
     private static let maximumFileBytes = 32_000_000
     private static let maximumPages = 64

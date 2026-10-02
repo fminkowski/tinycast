@@ -23,22 +23,22 @@ struct ClipboardTextTests {
         expect(CGImageDestinationFinalize(destination), "write image fixture")
 
         let imageText = try await Task.detached {
-            try await ClipboardTextExtractor.extract(at: imageURL, isPDF: false)
+            try await TextRecognitionExtractor.extract(at: imageURL, isPDF: false)
         }.value
         expect(imageText.localizedCaseInsensitiveContains("ALPINE RECEIPT 7391"), "Vision recognizes image")
         let fileText = try await Task.detached {
-            try await ClipboardTextExtractor.extract(at: imageURL, isPDF: false)
+            try await TextRecognitionExtractor.extract(at: imageURL, isPDF: false)
         }.value
         expect(fileText.contains("7391"), "referenced image is recognized")
 
         let pdfURL = directory.appendingPathComponent("mixed.pdf")
         makePDF(at: pdfURL, scan: image)
         let pdfText = try await Task.detached {
-            try await ClipboardTextExtractor.extract(at: pdfURL, isPDF: true)
+            try await TextRecognitionExtractor.extract(at: pdfURL, isPDF: true)
         }.value
         expect(pdfText.contains("EMBEDDED INVOICE 4826"), "PDF embedded text is extracted")
         expect(pdfText.contains("7391"), "PDF scanned page is recognized")
-        expect(pdfText.utf8.count <= ClipboardTextExtractor.maximumTextBytes, "text is bounded")
+        expect(pdfText.utf8.count <= TextRecognitionExtractor.maximumTextBytes, "text is bounded")
 
         let tallURL = directory.appendingPathComponent("tall.png")
         let tall = CGContext(
@@ -53,7 +53,7 @@ struct ClipboardTextTests {
         CGImageDestinationAddImage(tallDestination, tall.makeImage()!, nil)
         expect(CGImageDestinationFinalize(tallDestination), "write tall screenshot fixture")
         let tallText = try await Task.detached {
-            try await ClipboardTextExtractor.extract(at: tallURL, isPDF: false)
+            try await TextRecognitionExtractor.extract(at: tallURL, isPDF: false)
         }.value
         expect(tallText.contains("7391"), "small relative text survives tall screenshot downsampling")
 
@@ -62,7 +62,7 @@ struct ClipboardTextTests {
         draw("OVERLAP LINE 5150", in: phone, at: CGPoint(x: 40, y: 600))
         writePNG(phone.makeImage()!, to: phoneURL)
         let phoneText = try await Task.detached {
-            try await ClipboardTextExtractor.extract(at: phoneURL, isPDF: false)
+            try await TextRecognitionExtractor.extract(at: phoneURL, isPDF: false)
         }.value
         expect(
             phoneText.components(separatedBy: "5150").count == 2,
@@ -75,7 +75,7 @@ struct ClipboardTextTests {
             in: wide, size: 76)
         writePNG(wide.makeImage()!, to: wideURL)
         let wideText = try await Task.detached {
-            try await ClipboardTextExtractor.extract(at: wideURL, isPDF: false)
+            try await TextRecognitionExtractor.extract(at: wideURL, isPDF: false)
         }.value
         expect(
             wideText.split(separator: "\n").contains { $0.contains("FIRSTWORD") && $0.contains("LASTWORD") },
@@ -85,14 +85,14 @@ struct ClipboardTextTests {
             filePath: directory.appendingPathComponent("missing.pdf").path,
             sourceBundleID: nil)
         do {
-            _ = try await ClipboardTextExtractor.extract(
+            _ = try await TextRecognitionExtractor.extract(
                 at: URL(fileURLWithPath: missing.filePath!), isPDF: true)
             expect(false, "missing file throws")
         } catch { expect(true, "missing file throws") }
         let cancelled = Task.detached {
             try Task.checkCancellation()
             try await Task.sleep(for: .seconds(1))
-            return try await ClipboardTextExtractor.extract(at: imageURL, isPDF: false)
+            return try await TextRecognitionExtractor.extract(at: imageURL, isPDF: false)
         }
         cancelled.cancel()
         do {

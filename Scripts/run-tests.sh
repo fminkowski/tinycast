@@ -143,6 +143,16 @@ run apple-shortcut-test    Tinycast/Features/AppleShortcuts/Model/*.swift
 run calc-test              Tinycast/Features/Calculator/Model/*.swift
 run index calc-performance Tinycast/Features/Calculator/Model/*.swift
 run calendar-test          Tinycast/Features/Calendar/Model/*.swift
+run screenshot-selection-test Tinycast/Features/Screenshots/UI/ScreenshotSelectionController.swift \
+                           Tinycast/Features/Screenshots/Model/ScreenshotGeometry.swift \
+                           Tinycast/Platform/ScreenTarget.swift
+run screenshots-test       Tinycast/Features/Screenshots/Model/*.swift \
+                           Tinycast/Features/Screenshots/Service/ScreenshotRepository.swift \
+                           Tinycast/Features/Screenshots/Service/ScreenshotTextCache.swift \
+                           Tinycast/Features/Screenshots/Service/ScreenshotStore.swift \
+                           Tinycast/Platform/AppPaths.swift \
+                           Tinycast/Platform/TextRecognition/TextRecognitionWorker.swift \
+                           Tinycast/Platform/ProcessExit.swift
 run clipboard-test         Tinycast/Features/Clipboard/Model/ClipboardStore.swift \
                            Tinycast/Features/Clipboard/Model/ClipboardFilter.swift \
                            Tinycast/Features/Clipboard/Model/ClipboardFileKind.swift \
@@ -154,9 +164,9 @@ Q=Tinycast/Features/Quicklinks/Model/QuicklinkDestination.swift
 run clipboard-search-test  Tinycast/Features/Clipboard/Model/*.swift $Q
 run paste-sequence-test    Tinycast/Features/Clipboard/Model/*.swift $Q
 run clipboard-text-test    Tinycast/Features/Clipboard/Model/*.swift $Q \
-                           Tinycast/Features/Clipboard/Service/ClipboardTextExtractor.swift \
+                           Tinycast/Platform/TextRecognition/TextRecognitionExtractor.swift \
                            Tinycast/Features/Clipboard/Service/ClipboardTextIndexer.swift \
-                           Tinycast/Features/Clipboard/Service/ClipboardTextWorker.swift \
+                           Tinycast/Platform/TextRecognition/TextRecognitionWorker.swift \
                            Tinycast/Platform/ProcessExit.swift
 run pasteboard-test        Tinycast/Platform/PasteboardFiles.swift \
                            Tinycast/Features/Clipboard/Model/ClipboardStore.swift \

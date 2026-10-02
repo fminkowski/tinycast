@@ -158,6 +158,10 @@ enum SettingsBackupCoverage {
             "Follows the language the person at this Mac reads, not the one who wrote the backup.",
         AppSettingsKey.snippetsFolder.rawValue:
             "Names a folder on this Mac; the one a backup lands on may not have it.",
+        AppSettingsKey.screenshotsEnabled.rawValue:
+            "Grants automatic text recognition over the selected folder; consent stays on this Mac.",
+        AppSettingsKey.screenshotsFolder.rawValue:
+            "Names a folder on this Mac; the one a backup lands on may not have it.",
         AppSettingsKey.notesFolder.rawValue:
             "Names a folder on this Mac; the one a backup lands on may not have it.",
         AppSettingsKey.settingsFileEnabled.rawValue:

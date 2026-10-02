@@ -12,24 +12,24 @@ enum ImageThumbnail {
     }
 
     /// Cache-only, never touching disk, so a warm thumbnail renders on the same frame.
-    static func cached(_ url: URL, maxPixel: CGFloat) -> NSImage? {
-        cache.cached(url, maxPixel: maxPixel)
+    static func cached(_ url: URL, maxPixel: CGFloat, revision: String = "") -> NSImage? {
+        cache.cached(url, maxPixel: maxPixel, revision: revision)
     }
 
     /// A freshly-decoded, thereafter-immutable `NSImage` is safe to move across the actor boundary.
     private struct Decoded: @unchecked Sendable { let image: NSImage? }
 
     /// Returns the decode directly, so an eviction mid-decode can't strand a placeholder.
-    static func loadAsync(_ url: URL, maxPixel: CGFloat) async -> NSImage? {
-        if let cached = cached(url, maxPixel: maxPixel) { return cached }
+    static func loadAsync(_ url: URL, maxPixel: CGFloat, revision: String = "") async -> NSImage? {
+        if let cached = cached(url, maxPixel: maxPixel, revision: revision) { return cached }
         return await Task.detached(priority: .userInitiated) {
-            Decoded(image: load(url, maxPixel: maxPixel))
+            Decoded(image: load(url, maxPixel: maxPixel, revision: revision))
         }.value.image
     }
 
     /// A thumbnail capped at `maxPixel`, cached per path and size; decodes synchronously.
-    static func load(_ url: URL, maxPixel: CGFloat) -> NSImage? {
-        if let cached = cached(url, maxPixel: maxPixel) { return cached }
+    static func load(_ url: URL, maxPixel: CGFloat, revision: String = "") -> NSImage? {
+        if let cached = cached(url, maxPixel: maxPixel, revision: revision) { return cached }
 
         guard let source = CGImageSourceCreateWithURL(url as CFURL, nil) else { return nil }
         let options: [CFString: Any] = [
@@ -44,7 +44,7 @@ enum ImageThumbnail {
         let image = NSImage(
             cgImage: cgImage, size: NSSize(width: cgImage.width, height: cgImage.height))
         cache.store(
-            image, for: url, maxPixel: maxPixel, cost: cgImage.bytesPerRow * cgImage.height)
+            image, for: url, maxPixel: maxPixel, cost: cgImage.bytesPerRow * cgImage.height, revision: revision)
         return image
     }
 

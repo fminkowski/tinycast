@@ -18,13 +18,20 @@ final class ClipboardTextIndexer {
     init(
         store: ClipboardStore, delay: Duration = .milliseconds(250), retryDelay: TimeInterval = 30,
         canRun: @escaping () -> Bool,
-        extract: @escaping @Sendable (ClipboardItem) async throws -> String = ClipboardTextWorker.extract
+        extract: @escaping @Sendable (ClipboardItem) async throws -> String = ClipboardTextIndexer.extractText
     ) {
         self.store = store
         self.delay = delay
         self.retryDelay = retryDelay
         self.canRun = canRun
         self.extract = extract
+    }
+
+    nonisolated static func extractText(_ item: ClipboardItem) async throws -> String {
+        guard let path = item.imagePath ?? item.filePath else { return "" }
+        let kind = item.kind == .image ? ClipboardFileKind.image : ClipboardFileKind.of(path: path)
+        guard kind == .image || kind == .pdf else { return "" }
+        return try await TextRecognitionWorker.extract(at: URL(filePath: path), isPDF: kind == .pdf)
     }
 
     isolated deinit {

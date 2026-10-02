@@ -75,6 +75,10 @@ extension SettingsAnchor {
     static let windowManagementOptions = Self(tab: .windowManagement, title: "Options")
     static let windowManagementCustomSizes = Self(tab: .windowManagement, title: "Custom Sizes")
 
+    static let screenshotsScreenshots = Self(tab: .screenshots, title: "Screenshots")
+    static let screenshotsFolder = Self(tab: .screenshots, title: "Save Location")
+    static let screenshotsCommands = Self(tab: .screenshots, title: "Commands")
+
     static let clipboardClipboard = Self(tab: .clipboard, title: "Clipboard")
     static let clipboardCommands = Self(tab: .clipboard, title: "Commands")
     static let clipboardHistory = Self(tab: .clipboard, title: "History")
@@ -97,6 +101,7 @@ extension SettingsAnchor {
     static let extensionsStorage = Self(tab: .extensions, title: "Storage")
 
     static let permissionsAccessibility = Self(tab: .permissions, title: "Accessibility")
+    static let permissionsScreenRecording = Self(tab: .permissions, title: "Screen Recording")
     static let permissionsCalendars = Self(tab: .permissions, title: "Calendars")
 
     static let backupExport = Self(tab: .backup, title: "Export")

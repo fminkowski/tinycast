@@ -19,17 +19,17 @@ final class ThumbnailCache: @unchecked Sendable {
         maxPixel <= Self.rowThreshold ? rows : previews
     }
 
-    private func key(_ url: URL, _ maxPixel: CGFloat) -> NSString {
-        "\(url.path)#\(Int(maxPixel))" as NSString
+    private func key(_ url: URL, _ maxPixel: CGFloat, _ revision: String) -> NSString {
+        "\(url.path)#\(Int(maxPixel))#\(revision)" as NSString
     }
 
-    func cached(_ url: URL, maxPixel: CGFloat) -> NSImage? {
-        tier(maxPixel).object(forKey: key(url, maxPixel))
+    func cached(_ url: URL, maxPixel: CGFloat, revision: String = "") -> NSImage? {
+        tier(maxPixel).object(forKey: key(url, maxPixel, revision))
     }
 
     /// Cost is the decoded bitmap's real footprint, so a limit bounds actual RAM.
-    func store(_ image: NSImage, for url: URL, maxPixel: CGFloat, cost: Int) {
-        tier(maxPixel).setObject(image, forKey: key(url, maxPixel), cost: cost)
+    func store(_ image: NSImage, for url: URL, maxPixel: CGFloat, cost: Int, revision: String = "") {
+        tier(maxPixel).setObject(image, forKey: key(url, maxPixel, revision), cost: cost)
     }
 
     /// Frees the large bitmaps on dismiss; row tiles stay warm for a re-open.

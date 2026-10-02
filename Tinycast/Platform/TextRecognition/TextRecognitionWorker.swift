@@ -1,26 +1,20 @@
 import Foundation
 
-/// Runs one `ClipboardTextHelper` per item, so Vision's allocations leave with the child process.
-nonisolated enum ClipboardTextWorker {
+/// Runs one `TextRecognitionHelper` per item, so Vision's allocations leave with the child process.
+nonisolated enum TextRecognitionWorker {
     enum Failure: Error { case recognition, outputLimit }
 
-    /// Mirrors `ClipboardTextExtractor.maximumTextBytes`: the helper is not in the app's module.
+    /// Mirrors `TextRecognitionExtractor.maximumTextBytes`: the helper is not in the app's module.
     private static let maximumOutputBytes = 32_000
     private static let readSize = 4096
     /// The read loop and the exit wait block, so they stay off the cooperative pool.
     private static let queue = DispatchQueue(
-        label: "com.tinycast.clipboard-text", qos: .background, attributes: .concurrent)
-
-    static func extract(_ item: ClipboardItem) async throws -> String {
-        guard let path = item.imagePath ?? item.filePath else { return "" }
-        let kind = item.kind == .image ? ClipboardFileKind.image : ClipboardFileKind.of(path: path)
-        guard kind == .image || kind == .pdf else { return "" }
-        let executable = Bundle.main.bundleURL.appendingPathComponent("Contents/Helpers/ClipboardTextHelper")
-        return try await extract(at: URL(fileURLWithPath: path), isPDF: kind == .pdf, executable: executable)
-    }
+        label: "com.tinycast.text-recognition", qos: .background, attributes: .concurrent)
 
     static func extract(
-        at url: URL, isPDF: Bool, executable: URL, timeout: Duration = .seconds(60)
+        at url: URL, isPDF: Bool = false,
+        executable: URL = Bundle.main.bundleURL.appendingPathComponent("Contents/Helpers/TextRecognitionHelper"),
+        timeout: Duration = .seconds(60)
     ) async throws -> String {
         try Task.checkCancellation()
         let process = Process()

@@ -4,6 +4,7 @@ import SwiftUI
 struct PermissionsSettingsView: View {
     @Environment(AppCore.self) private var core
     @State private var accessibilityTrusted = Permissions.isAccessibilityTrusted()
+    @State private var screenRecordingGranted = Permissions.isScreenRecordingGranted()
     @State private var calendarAccess = Permissions.calendarAccess()
     private let refreshTimer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
 
@@ -76,6 +77,24 @@ struct PermissionsSettingsView: View {
             } header: {
                 SettingsSectionHeader(.permissionsCalendars)
             }
+            Section {
+                LabeledContent {
+                    HStack(spacing: Theme.Spacing.lg) {
+                        Label(screenRecordingGranted ? "Granted" : "Not granted",
+                              systemImage: screenRecordingGranted ? "checkmark.circle.fill" : "exclamationmark.triangle.fill")
+                            .foregroundStyle(screenRecordingGranted ? Color.green : Color.orange)
+                        Button("Open…", action: Permissions.openScreenRecordingSettings)
+                            .help("Opens Privacy & Security › Screen Recording.")
+                    }
+                } label: {
+                    VStack(alignment: .leading, spacing: Theme.Spacing.xxs) {
+                        SettingsRowTitle(.permissionsScreenRecording, "Screen Recording")
+                        Text("Captures an area, a window, or a display.").foregroundStyle(.secondary)
+                    }
+                }
+            } header: {
+                SettingsSectionHeader(.permissionsScreenRecording)
+            }
         }
         .formStyle(.grouped)
         .settingsScrollTarget(.permissions)
@@ -100,6 +119,7 @@ struct PermissionsSettingsView: View {
     }
 
     private func refresh() {
+        screenRecordingGranted = Permissions.isScreenRecordingGranted()
         let trusted = Permissions.isAccessibilityTrusted()
         if trusted != accessibilityTrusted { accessibilityTrusted = trusted }
         let access = Permissions.calendarAccess()

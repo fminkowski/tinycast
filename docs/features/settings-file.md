@@ -150,3 +150,9 @@ recorder's rule holds: a chord needs ⌘, ⌥, ⌃ or fn unless its key is an F-
 4. Run its side effect from a `track` sink in `AppCore`.
 
 A consent flag, content or machine state gets no key.
+
+## Screenshots
+
+`screenshots.folder` chooses the image library and capture destination. It accepts the same absolute
+or `~/`-relative path shape as Notes and Snippets, with `null` restoring the Pictures default.
+`screenshots.enabled` is deliberately absent: enabling authorizes local OCR and stays machine-local.

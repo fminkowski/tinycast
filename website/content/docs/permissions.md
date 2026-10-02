@@ -6,7 +6,7 @@ description: What Tinycast asks for, why it needs it, and when it asks.
 Tinycast asks for a permission **only when you use a feature that needs it**, never at launch. The
 launcher, calculator, emoji picker and search all work without any permissions.
 
-**Settings → Permissions** shows the status of Accessibility and Calendars, and opens the right
+**Settings → Permissions** shows the status of Accessibility, Calendars and Screen Recording, and opens the right
 System Settings pane for you.
 
 ## Accessibility
@@ -73,6 +73,13 @@ A few actions show their own macOS prompt the first time you run them:
 If you decline, Tinycast tells you and links to the right System Settings pane, so the action never
 fails silently.
 
+## Screen Recording
+
+[Capture Area, Capture Window and Capture Screen](/docs/features/screenshots) ask for this permission
+when you first take a screenshot. Grant it in **System Settings → Privacy & Security → Screen
+Recording**. Browsing saved screenshots and recognizing their text need no Screen Recording access.
+The window switcher still reads window titles through Accessibility.
+
 ## Full Disk Access
 
 Tinycast **checks** whether it has Full Disk Access but **never asks** for it.
@@ -87,6 +94,5 @@ those by hand.
 - **File access for File Search.** [File Search](/docs/features/file-search) uses the Spotlight
   index that macOS already maintains. If Spotlight hasn't indexed something, you get fewer results,
   not a permission prompt.
-- **Screen Recording.** The window switcher reads window titles through Accessibility.
 - **Location.** The calculator picks your currency from your Mac's region setting.
 - **Input Monitoring.** Snippets listen through Accessibility, as described above.

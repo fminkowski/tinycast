@@ -306,6 +306,14 @@ final class AppSettings {
         }
     }
 
+    var screenshotsEnabled: Bool {
+        didSet { defaults.set(screenshotsEnabled, forKey: Key.screenshotsEnabled.rawValue) }
+    }
+
+    var screenshotsFolder: String? {
+        didSet { defaults.set(screenshotsFolder, forKey: Key.screenshotsFolder.rawValue) }
+    }
+
     var notesEnabled: Bool {
         didSet { defaults.set(notesEnabled, forKey: Key.notesEnabled.rawValue) }
     }
@@ -655,6 +663,8 @@ final class AppSettings {
             ?? FileSearchScope.defaultScopes
         fileSearchIgnorePatterns =
             defaults.stringArray(forKey: Key.fileSearchIgnorePatterns.rawValue) ?? []
+        screenshotsEnabled = defaults.bool(forKey: Key.screenshotsEnabled.rawValue)
+        screenshotsFolder = defaults.string(forKey: Key.screenshotsFolder.rawValue)
         notesEnabled = defaults.bool(forKey: Key.notesEnabled.rawValue)
         notesRendersMarkdown =
             defaults.object(forKey: Key.notesRendersMarkdown.rawValue) == nil

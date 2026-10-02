@@ -5,6 +5,7 @@ struct RootPaletteView: View {
     @Environment(PaletteState.self) private var vm
     @Environment(AppIndex.self) private var appIndex
     @Environment(ClipboardStore.self) private var store
+    @Environment(ScreenshotCoordinator.self) private var screenshots
     @Environment(FavoritesStore.self) private var favorites
     @Environment(VisibilityStore.self) private var visibility
     @Environment(CalculatorHistoryStore.self) private var calcHistory
@@ -71,6 +72,8 @@ struct RootPaletteView: View {
                 index: emojiIndex, frequent: frequentEmoji, pinned: core.pinnedEmoji, core: core, vm: vm,
                 tone: settings.emojiSkinTone, defaultColumns: settings.emojiGridColumns,
                 openActions: openActions)
+        case .screenshots:
+            return ScreenshotScreen(coordinator: screenshots, vm: vm, openActions: openActions)
         case .fileSearch:
             return FileSearchScreen(
                 session: fileSearch, core: core, vm: vm, openActions: openActions)

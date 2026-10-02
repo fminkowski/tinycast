@@ -89,3 +89,12 @@ Everything here is **off** by default, except Clipboard and Emoji & Symbols.
 
 **About.** Version, license, **Check for Updates**, links to the project, and **Support**. See
 [Updates](/docs/reference/updates).
+
+## Screenshots
+
+Screenshots is off by default. Enabling it adds Capture Area, Capture Window, Capture Screen and
+Search Screenshots, and starts local text recognition for the selected folder. Save Location defaults
+to Pictures → Tinycast Screenshots. Change it with Choose…, reset with Use Default, or open it in
+Finder with Open Folder. Each command supports a visibility checkbox, alias and hotkey.
+
+See [Screenshots](/docs/features/screenshots) for capture and search behavior.

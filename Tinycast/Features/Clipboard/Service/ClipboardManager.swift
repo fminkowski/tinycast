@@ -97,6 +97,16 @@ final class ClipboardManager {
         lastChangeCount = changeCount
     }
 
+    func copyImage(_ png: Data, to pasteboard: NSPasteboard = .general) {
+        guard !png.isEmpty else { return }
+        if pasteboard.name == NSPasteboard.general.name { prepareForTinycastPasteboardMutation() }
+        pasteboard.clearContents()
+        pasteboard.declareTypes([.png, Self.internalType], owner: nil)
+        pasteboard.setData(png, forType: .png)
+        pasteboard.setData(Data(), forType: Self.internalType)
+        if isCapturing { store.addImage(png, sourceBundleID: Bundle.main.bundleIdentifier) }
+    }
+
     /// A Finder select-all must not insert ten thousand rows on one poll tick.
     nonisolated static let maxCapturedFiles = 32
 

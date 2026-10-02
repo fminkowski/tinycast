@@ -92,6 +92,8 @@ If a change touches anything in the right column, the harness on the left is man
 | `calc-test` | all of `Calculator/Model/` |
 | `calendar-test` | all of `Calendar/Model/` — link detection, the join window, the day buckets |
 | `clipboard-search-test` | Ordinary and OCR result ordering, opt-in lifecycle, cancellation, pins and type filters |
+| `screenshot-selection-test` | native selection overlays — drag geometry, Escape, repeated triggers and teardown, without capturing or writing the clipboard |
+| `screenshots-test` | Screenshot filenames, folder scanning, geometry, SQLite OCR invalidation, retries, cancellation and generation isolation |
 | `clipboard-text-test` | Apple Vision/PDF extraction, scheduling, retry backoff and recovery |
 | `paste-sequence-test` | `Clipboard/Model/PasteSequence.swift` — the walk's order, its end, and what starts it over |
 | `clipboard-test` | `Clipboard/Model/ClipboardStore.swift`, `ClipboardFilter.swift`, `ClipboardFileKind.swift`, the colour trio |
@@ -578,6 +580,26 @@ caches, TCC grants and login item, so this cannot disturb an installed copy.
 - Quitting inside the debounce window saves the last edit
 - Over a light desktop, the corner matches the palette's, the shadow follows it, and no dark edge shows
   around the glass controls
+
+### Screenshots
+
+- Off on a clean profile: no commands, hotkeys, screenshot folder, OCR database or permission prompt
+- Enable in Settings: four commands appear, OCR begins locally, and no Screen Recording prompt appears
+- Deny or revoke Screen Recording: capture reports permission denial without saving or changing the clipboard
+- Area and window selection cancel with Escape, leaving files and clipboard unchanged
+- Capture Area, Capture Window and Capture Screen copy and save a full-resolution PNG
+- Window shadows are included and cursors, selectors and the palette are excluded
+- Full-screen capture follows the pointer on a second display; area drags work in either direction
+- Repeated hotkeys never stack selectors, and disabling during selection cancels it
+- Save failure still copies the image and reports the partial success
+- Search opens thumbnails and a larger preview in Dark and Light at all Interface Sizes
+- Hover and arrows preview; single-click and Return copy the full image and close the palette
+- Command-Return reveals in Finder; a missing or corrupt image leaves the clipboard untouched
+- Existing images are shown, subfolders skipped, and filename, date and OCR queries match
+- Change folder during OCR: no old rows or text return, and files in the previous folder stay put
+- Replace or delete a file with the browser open: thumbnails and OCR reflect the new revision
+- With Clipboard History on a copy records once; with it off, copying still works and records nothing
+- Relaunch restores the folder and switch; backup and settings.json cannot enable screenshot OCR
 
 ### Snippets
 
